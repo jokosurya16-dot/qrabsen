@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <title>Absensi QR Mahasiswa</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- html5-qrcode (minified) -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
+
+  <style>
+    body { font-family: Arial, sans-serif; text-align:center; margin:20px; }
+    #reader { width:320px; margin:10px auto; }
+    #status { margin-top:10px; font-weight:bold; color:green; }
+    pre#log { text-align:left; max-height:200px; overflow:auto; background:#f4f4f4; padding:8px; border-radius:6px; }
+    button { margin:6px; padding:8px 12px; }
+  </style>
+</head>
+<body>
+  <h2>Absensi QR Code Mahasiswa</h2>
+
+  <div id="reader"></div>
+
+  <div id="status">Status: menunggu scan...</div>
+
+  <div>
+    <button id="btn-start">Mulai Scanner</button>
+    <button id="btn-stop" disabled>Stop Scanner</button>
+    <button id="btn-test">Tes Kirim (manual)</button>
+  </div>
+
+  <p>Log:</p>
+  <pre id="log"></pre>
+
+  <script>
+    // --- GANTI INI dengan URL Apps Script kamu ---
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwrFw5zYQ2NLzPA1NTTKwvWn5AdzI_wn40vaoGU2xZzDcrEkj-YE1sMPfrXEk35y9T9/exec";
+    // -------------------------------------------
+
+    const statusEl = document.getElementById('status');
+    const logEl = document.getElementById('log');
+    const btnStart = document.getElementById('btn-start');
+    const btnStop = document.getElementById('btn-stop');
+    const btnTest = document.getElementById('btn-test');
+
+    function log(...args){
+      console.log(...args);
+      logEl.textContent += args.map(a => (typeof a === 'object' ? JSON.stringify(a) : a)).join(' ') + "\n";
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    let scanner = null;
+    function onScanSuccess(decodedText, decodedResult){
+      statusEl.innerText = "Terbaca: " + decodedText;
+      log("Scan:", decodedText);
+
+      // parsing: kalau format "NIM|Nama" maka kirim "data" string,
+      // kalau hanya nama, kirim juga (NIM kosong akan di-handle di server).
+      sendToServer(decodedText);
+    }
+
+    function onScanFailure(error){
+      // ignore minor scan errors but log
+      // log("Scan error:", error);
+    }
+
+    // Kirim JSON, kalau gagal coba fallback form-encoded
+    async function sendToServer(text){
+      if (!WEB_APP_URL || WEB_APP_URL.includes("PASTE_URL")) {
+        log("ERROR: Ganti variabel WEB_APP_URL pada file dengan URL /exec Apps Script-mu.");
+        statusEl.innerText = "ERROR: Web app URL belum diganti.";
+        return;
+      }
+
+      const payload = { data: text }; // Apps Script kita akan terima "data"
+      try {
+        const res = await fetch(WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const txt = await res.text();
+        log("Server (JSON):", txt);
+        statusEl.innerText = "Tersimpan: " + text;
+      } catch (err) {
+        log("Send JSON gagal, coba form POST ...", err);
+        // fallback form-encoded
+        try {
+          const res2 = await fetch(WEB_APP_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({ data: text })
+          });
+          const txt2 = await res2.text();
+          log("Server (form):", txt2);
+          statusEl.innerText = "Tersimpan (form): " + text;
+        } catch (err2) {
+          log("Kirim ke server gagal:", err2);
+          statusEl.innerText = "Gagal kirim: cek Console/Network";
+        }
+      }
+    }
+
+    // Start / Stop scanner menggunakan Html5QrcodeScanner (UI otomatis)
+    let qrcodeScanner = null;
+    btnStart.addEventListener('click', ()=> {
+      btnStart.disabled = true;
+      btnStop.disabled = false;
+      statusEl.innerText = "Mencari kamera...";
+      // gunakan Html5QrcodeScanner untuk UI sederhana
+      qrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 }, /* verbose= */ false);
+      qrcodeScanner.render(onScanSuccess, onScanFailure);
+    });
+
+    btnStop.addEventListener('click', ()=> {
+      btnStart.disabled = false;
+      btnStop.disabled = true;
+      statusEl.innerText = "Scanner dihentikan.";
+      if (qrcodeScanner) {
+        // Html5QrcodeScanner tidak expose stop() langsung; kita reload container
+        document.getElementById('reader').innerHTML = "";
+        qrcodeScanner = null;
+      }
+    });
+
+    // tombol test — kirim test payload
+    btnTest.addEventListener('click', ()=> {
+      const sample = prompt("Isi test data (contoh: 202501001|Ahmad Dany Maulana)","TEST|User");
+      if (sample) {
+        sendToServer(sample);
+      }
+    });
+
+    // Auto-start pada localhost (opsional)
+    // if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+    //   btnStart.click();
+    // }
+
+    log("Halaman siap. Jangan buka file lewat file:// — jalankan lewat http://localhost atau hosting.");
+  </script>
+</body>
+</html>
