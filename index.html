@@ -4,56 +4,62 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Absensi QR Code Mahasiswa</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
-      background: #f4f4f9;
-    }
-    h1 {
-      color: #333;
-    }
-    video {
-      width: 90%;
-      max-width: 400px;
-      border: 2px solid #333;
-      border-radius: 10px;
-      margin-top: 15px;
-    }
-    #result {
-      margin-top: 20px;
-      font-size: 18px;
-      color: green;
-      font-weight: bold;
-    }
+    body { font-family: Arial, sans-serif; text-align: center; background: #f7f8fc; }
+    h1 { color: #333; margin-top: 20px; }
+    #reader { width: 350px; margin: auto; }
+    #hasilScan { margin-top: 15px; font-weight: bold; color: green; }
+    button { margin-top: 15px; padding: 8px 16px; font-size: 14px; cursor: pointer; }
   </style>
 </head>
 <body>
   <h1>Absensi QR Code Mahasiswa</h1>
   <p>Scan QR Code untuk absen:</p>
-  <video id="preview"></video>
-  <div id="result">📷 Hasil scan akan muncul di sini...</div>
 
-  <!-- Tambah worker file untuk qr-scanner -->
-  <script type="module">
-    import QrScanner from "https://unpkg.com/qr-scanner/qr-scanner.min.js";
+  <div id="reader"></div>
+  <p id="hasilScan">📷 Arahkan kamera ke QR Code...</p>
+  <button onclick="restartScanner()">🔄 Scan Lagi</button>
 
-    const videoElem = document.getElementById("preview");
-    const resultElem = document.getElementById("result");
+  <script>
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbwrFw5zYQ2NLzPA1NTTKwvWn5AdzI_wn40vaoGU2xZzDcrEkj-YE1sMPfrXEk35y9T9/exec"; // << ganti dengan URL Web App Google Apps Script kamu
 
-    const scanner = new QrScanner(videoElem, result => {
-      resultElem.textContent = "✅ Kehadiran: " + result;
+    let scanner;
 
-      // Contoh kirim data ke Google Apps Script
-      fetch("https://script.google.com/macros/s/AKfycbwrFw5zYQ2NLzPA1NTTKwvWn5AdzI_wn40vaoGU2xZzDcrEkj-YE1sMPfrXEk35y9T9/exec", {
+    function onScanSuccess(decodedText) {
+      // tampilkan hasil scan
+      document.getElementById("hasilScan").innerText = "✅ " + decodedText;
+
+      // kirim ke Google Apps Script
+      fetch(scriptUrl, {
         method: "POST",
-        body: new URLSearchParams({ nama: result })
-      });
-    });
+        body: JSON.stringify({ qrcode: decodedText }),
+        headers: { "Content-Type": "application/json" }
+      }).then(res => console.log("Data terkirim:", res))
+        .catch(err => console.error("Gagal kirim:", err));
 
-    scanner.start();
+      // stop scanner supaya tidak spam
+      scanner.clear().then(() => {
+        console.log("Scanner berhenti sementara setelah scan sukses.");
+      });
+    }
+
+    function onScanFailure(error) {
+      // ga masalah kalau gagal scan, biarkan
+    }
+
+    function startScanner() {
+      scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+      scanner.render(onScanSuccess, onScanFailure);
+    }
+
+    function restartScanner() {
+      document.getElementById("hasilScan").innerText = "📷 Arahkan kamera ke QR Code...";
+      startScanner();
+    }
+
+    // mulai scanner pertama kali
+    startScanner();
   </script>
 </body>
 </html>
-
