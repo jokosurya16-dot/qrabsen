@@ -80,21 +80,22 @@
 
   function sendData(nim, nama = "") {
     fetch(SCRIPT_URL, {
-      method: "POST",
-      mode: "cors",   // ✅ penting untuk GitHub Pages
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nim: nim, nama: nama })
-    })
-    .then(r => r.json())   // ✅ parse sebagai JSON
-    .then(data => {
-      document.getElementById("result").className = "success";
-      document.getElementById("result").innerText = "✅ Absen berhasil: " + nim;
-      console.log("Respon server:", data);
-    })
-    .catch(err => {
-      document.getElementById("result").className = "error";
-      document.getElementById("result").innerText = "❌ Gagal kirim: " + err;
-    });
+  method: "POST",
+  mode: "cors",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ nim: nim, nama: nama })
+})
+.then(r => r.json())
+.then(data => {
+  console.log("Respon dari server:", data);
+  document.getElementById("result").className = "success";
+  document.getElementById("result").innerText = "✅ Absen berhasil: " + data.message;
+})
+.catch(err => {
+  console.error("Fetch error:", err);
+  document.getElementById("result").className = "error";
+  document.getElementById("result").innerText = "❌ Gagal kirim: " + err;
+});
   }
 
   function onScanSuccess(decodedText, decodedResult) {
@@ -129,6 +130,7 @@
 </script>
 </body>
 </html>
+
 
 
 
