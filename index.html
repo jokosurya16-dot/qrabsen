@@ -60,11 +60,11 @@
   <h1>Absensi QR Code</h1>
   <div id="reader"></div>
   <div id="result">Silakan scan QR Code...</div>
-  <button onclick="restartScanner()">Scan Ulang</button>
+  <button onclick="restartScanner()">🔄 Scan Ulang</button>
 
   <script>
-    // 🔹 Ganti URL ini dengan URL googleusercontent.com hasil deploy
-    const SCRIPT_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLjwhSMygVt3gthppTMZ6O3K7ZKbI4sfMGTnDei9ahJhBdUOYJa8fruyZ1qyWgoalfWT3uV0lEj8XDae24IG4R1BN2k9uDoQZlAfnTkqOWGv0XD366kUJSlOLSut6aw-oQWVQty8AKsGEtRZDORIOhYYWUYQ88N-xYguL6XcG-gzdmHUUI6sYXrS-bLkoaKuR3FKWSNGdRIS-IL76JlfX17ItSLF-7xHOvSw_9hCX_L3f51WW-stiP_K7d1V1MjG3WaNaaB1dqaDpWQVPj9Lper-w8XhSA&lib=MSUm486ebANF_sArvtUnSu4d8E7MbZZVT";
+    // 🔹 Ganti dengan URL Web App kamu (yang sukses di ReqBin)
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyIMXlp5vdSmZs2LHWuhVRAAjrORRA_49VNgrPzJtPMClX5HXGm0T4EEgsgQBkZ9TZz/exec";
 
     let html5QrcodeScanner;
 
@@ -119,4 +119,3 @@
   </script>
 </body>
 </html>
-
