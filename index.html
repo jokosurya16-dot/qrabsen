@@ -75,56 +75,59 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAHdknlD4kTAoViOVeLZu2Kpor7ZOsr9NSc-RNIghMDptvPzwIX_ZxsaEQitxPyZb3/exec";
-    let html5QrcodeScanner;
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAHdknlD4kTAoViOVeLZu2Kpor7ZOsr9NSc-RNIghMDptvPzwIX_ZxsaEQitxPyZb3/exec";
+  let html5QrcodeScanner;
 
-    function sendData(nim, nama = "") {
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nim: nim, nama: nama })
-      })
-      .then(r => r.text())
-      .then(txt => {
-        document.getElementById("result").className = "success";
-        document.getElementById("result").innerText = "✅ Absen berhasil: " + nim;
-      })
-      .catch(err => {
-        document.getElementById("result").className = "error";
-        document.getElementById("result").innerText = "❌ Gagal kirim: " + err;
-      });
-    }
+  function sendData(nim, nama = "") {
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      mode: "cors",   // ✅ penting untuk GitHub Pages
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nim: nim, nama: nama })
+    })
+    .then(r => r.json())   // ✅ parse sebagai JSON
+    .then(data => {
+      document.getElementById("result").className = "success";
+      document.getElementById("result").innerText = "✅ Absen berhasil: " + nim;
+      console.log("Respon server:", data);
+    })
+    .catch(err => {
+      document.getElementById("result").className = "error";
+      document.getElementById("result").innerText = "❌ Gagal kirim: " + err;
+    });
+  }
 
-    function onScanSuccess(decodedText, decodedResult) {
-      document.getElementById("result").className = "";
-      document.getElementById("result").innerText = "QR Terdeteksi: " + decodedText;
-      sendData(decodedText);
+  function onScanSuccess(decodedText, decodedResult) {
+    document.getElementById("result").className = "";
+    document.getElementById("result").innerText = "QR Terdeteksi: " + decodedText;
+    sendData(decodedText);
 
-      // 🔴 Stop scanner setelah sukses 1x
-      html5QrcodeScanner.clear();
-    }
+    // 🔴 Stop scanner setelah sukses 1x
+    html5QrcodeScanner.clear();
+  }
 
-    function startScanner() {
-      html5QrcodeScanner = new Html5Qrcode("reader");
-      html5QrcodeScanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: 250 },
-        onScanSuccess
-      ).catch(err => {
-        document.getElementById("result").className = "error";
-        document.getElementById("result").innerText = "❌ Error: " + err;
-      });
-    }
+  function startScanner() {
+    html5QrcodeScanner = new Html5Qrcode("reader");
+    html5QrcodeScanner.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      onScanSuccess
+    ).catch(err => {
+      document.getElementById("result").className = "error";
+      document.getElementById("result").innerText = "❌ Error: " + err;
+    });
+  }
 
-    function restartScanner() {
-      document.getElementById("result").className = "";
-      document.getElementById("result").innerText = "Silakan scan QR Code...";
-      startScanner();
-    }
-
-    // Mulai pertama kali
+  function restartScanner() {
+    document.getElementById("result").className = "";
+    document.getElementById("result").innerText = "Silakan scan QR Code...";
     startScanner();
-  </script>
+  }
+
+  // Mulai pertama kali
+  startScanner();
+</script>
 </body>
 </html>
+
 
