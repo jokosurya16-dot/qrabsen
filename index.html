@@ -13,7 +13,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
       min-height: 100vh;
     }
     h1 {
@@ -51,6 +50,19 @@
       color: #c62828;
       border: 1px solid #c62828;
     }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #1976d2;
+      color: white;
+    }
+    button:hover {
+      background: #0d47a1;
+    }
   </style>
 </head>
 <body>
@@ -59,11 +71,12 @@
   <div class="card">
     <div id="reader"></div>
     <div id="result">Silakan scan QR Code...</div>
+    <button onclick="restartScanner()">🔄 Scan Lagi</button>
   </div>
 
   <script>
-    // Ganti dengan URL Web App Google Apps Script kamu
-    const SCRIPT_URL = "PASTE_URL_DEPLOY_WEBAPP_DISINI";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz_xB-mYG6mIiMG_tJX6ET8V9t9ZB4wg6lG0DUPKhLDcdNLeQrKKqy4-Tprlu9TMgjN/exec";
+    let html5QrcodeScanner;
 
     function sendData(nim, nama = "") {
       fetch(SCRIPT_URL, {
@@ -85,12 +98,32 @@
     function onScanSuccess(decodedText, decodedResult) {
       document.getElementById("result").className = "";
       document.getElementById("result").innerText = "QR Terdeteksi: " + decodedText;
-      sendData(decodedText); // QR hanya isi NIM
+      sendData(decodedText);
+
+      // 🔴 Stop scanner setelah sukses 1x
+      html5QrcodeScanner.clear();
     }
 
-    var html5QrcodeScanner = new Html5QrcodeScanner(
-      "reader", { fps: 10, qrbox: 250 });
-    html5QrcodeScanner.render(onScanSuccess);
+    function startScanner() {
+      html5QrcodeScanner = new Html5Qrcode("reader");
+      html5QrcodeScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        onScanSuccess
+      ).catch(err => {
+        document.getElementById("result").className = "error";
+        document.getElementById("result").innerText = "❌ Error: " + err;
+      });
+    }
+
+    function restartScanner() {
+      document.getElementById("result").className = "";
+      document.getElementById("result").innerText = "Silakan scan QR Code...";
+      startScanner();
+    }
+
+    // Mulai pertama kali
+    startScanner();
   </script>
 </body>
 </html>
