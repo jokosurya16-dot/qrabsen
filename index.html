@@ -46,7 +46,7 @@
       resultElem.textContent = "✅ Kehadiran: " + result;
 
       // Contoh kirim data ke Google Apps Script
-      fetch("WEB_APP_URL", {
+      fetch("https://script.google.com/macros/s/AKfycbwrFw5zYQ2NLzPA1NTTKwvWn5AdzI_wn40vaoGU2xZzDcrEkj-YE1sMPfrXEk35y9T9/exec", {
         method: "POST",
         body: new URLSearchParams({ nama: result })
       });
@@ -56,3 +56,4 @@
   </script>
 </body>
 </html>
+
