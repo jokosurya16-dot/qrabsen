@@ -33,29 +33,22 @@
   <h1>Absensi QR Code Mahasiswa</h1>
   <p>Scan QR Code untuk absen:</p>
   <video id="preview"></video>
-  <div id="result">?? Hasil scan akan muncul di sini...</div>
+  <div id="result">📷 Hasil scan akan muncul di sini...</div>
 
-  <!-- Library qr-scanner -->
-  <script src="https://unpkg.com/qr-scanner/qr-scanner.umd.min.js"></script>
-  <script>
+  <!-- Tambah worker file untuk qr-scanner -->
+  <script type="module">
+    import QrScanner from "https://unpkg.com/qr-scanner/qr-scanner.min.js";
+
     const videoElem = document.getElementById("preview");
     const resultElem = document.getElementById("result");
 
-    // Mulai scanner
     const scanner = new QrScanner(videoElem, result => {
-      resultElem.textContent = "? Kehadiran: " + result;
+      resultElem.textContent = "✅ Kehadiran: " + result;
 
-      // Kirim ke Google Sheets (via Apps Script)
-      fetch("https://script.google.com/macros/s/AKfycbwrFw5zYQ2NLzPA1NTTKwvWn5AdzI_wn40vaoGU2xZzDcrEkj-YE1sMPfrXEk35y9T9/exec", {
+      // Contoh kirim data ke Google Apps Script
+      fetch("WEB_APP_URL", {
         method: "POST",
-        body: new URLSearchParams({
-          nama: result,
-          nim: "" // masih kosong, nanti bisa diisi otomatis
-        })
-      }).then(() => {
-        console.log("? Data terkirim ke Google Sheets:", result);
-      }).catch(err => {
-        console.error("? Gagal kirim:", err);
+        body: new URLSearchParams({ nama: result })
       });
     });
 
